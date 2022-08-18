@@ -9,6 +9,8 @@ import org.openrefine.wikidata.qa.QAWarning.Severity;
 import org.openrefine.wikidata.schema.WbNameDescExpr.NameDescType;
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.openrefine.wikidata.updates.MediaInfoEdit;
 import org.openrefine.wikidata.updates.MediaInfoEditBuilder;
 import org.openrefine.wikidata.updates.StatementEdit;
@@ -95,7 +97,7 @@ public class WbMediaInfoEditExpr implements WbExpression<MediaInfoEdit> {
         		if (pathValue != null && !pathValue.getString().isBlank()) {
         			update.addFilePath(pathValue.getString());
         		}
-        	} catch(SkipSchemaExpressionException e) {
+        	} catch(SkipSchemaExpressionException | SpecialValueNoValueException | SpecialValueSomeValueException e) {
         		;
         	}
         }
@@ -105,7 +107,7 @@ public class WbMediaInfoEditExpr implements WbExpression<MediaInfoEdit> {
         		if (nameValue != null && !nameValue.getString().isBlank()) {
         			update.addFileName(nameValue.getString());
         		}
-        	} catch(SkipSchemaExpressionException e) {
+        	} catch(SkipSchemaExpressionException | SpecialValueNoValueException | SpecialValueSomeValueException e) {
         		;
         	}
         }
@@ -115,7 +117,7 @@ public class WbMediaInfoEditExpr implements WbExpression<MediaInfoEdit> {
         		if (wikitextValue != null && !wikitextValue.getString().isBlank()) {
         			update.addWikitext(wikitextValue.getString());
         		}
-        	} catch(SkipSchemaExpressionException e) {
+        	} catch(SkipSchemaExpressionException | SpecialValueNoValueException | SpecialValueSomeValueException e) {
         		;
         	}
         }
