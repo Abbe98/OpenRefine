@@ -25,6 +25,8 @@ package org.openrefine.wikidata.schema;
 
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -59,7 +61,9 @@ public interface WbExpression<T> {
     /**
      * Evaluates the value expression in a given context, returns a Wikibase value
      * suitable to be the target of a claim.
+     * @throws SpecialValueNoValueException
+     * @throws SpecialValueSomeValueException
      */
     public T evaluate(ExpressionContext ctxt)
-            throws SkipSchemaExpressionException, QAWarningException;
+            throws SkipSchemaExpressionException, QAWarningException, SpecialValueNoValueException, SpecialValueSomeValueException;
 }

@@ -26,6 +26,8 @@ package org.openrefine.wikidata.schema;
 import org.jsoup.helper.Validate;
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.openrefine.wikidata.updates.ItemEditBuilder;
 import org.openrefine.wikidata.updates.MediaInfoEditBuilder;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
@@ -92,6 +94,8 @@ public class WbNameDescExpr {
             }
         } catch (SkipSchemaExpressionException e) {
             return;
+        } catch (SpecialValueNoValueException | SpecialValueSomeValueException e) { // catch these and do nothing assuming these values will never intentionally be used for actual values
+            return;
         }
     }
     
@@ -118,6 +122,8 @@ public class WbNameDescExpr {
 				throw new IllegalArgumentException("Term type not supported by MediaInfo entities");
             }
         } catch (SkipSchemaExpressionException e) {
+            return;
+        } catch (SpecialValueNoValueException | SpecialValueSomeValueException e) { // catch these and do nothing assuming these values will never intentionally be used for actual values
             return;
         }
     }

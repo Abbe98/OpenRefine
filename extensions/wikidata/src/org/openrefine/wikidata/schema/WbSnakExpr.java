@@ -24,9 +24,13 @@
 package org.openrefine.wikidata.schema;
 
 import org.jsoup.helper.Validate;
+import org.openrefine.wikidata.schema.entityvalues.FullyPropertySerializingNoValueSnak;
+import org.openrefine.wikidata.schema.entityvalues.FullyPropertySerializingSomeValueSnak;
 import org.openrefine.wikidata.schema.entityvalues.FullyPropertySerializingValueSnak;
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyIdValue;
 import org.wikidata.wdtk.datamodel.interfaces.Snak;
 import org.wikidata.wdtk.datamodel.interfaces.Value;
@@ -61,9 +65,20 @@ public class WbSnakExpr implements WbExpression<Snak> {
     @Override
     public Snak evaluate(ExpressionContext ctxt)
             throws SkipSchemaExpressionException, QAWarningException {
-        PropertyIdValue propertyId = getProp().evaluate(ctxt);
-        Value evaluatedValue = value.evaluate(ctxt);
-        return new FullyPropertySerializingValueSnak(propertyId, evaluatedValue);
+        PropertyIdValue propertyId;
+        try {
+            propertyId = getProp().evaluate(ctxt);
+            try {
+                Value evaluatedValue = value.evaluate(ctxt);
+                return new FullyPropertySerializingValueSnak(propertyId, evaluatedValue);
+            } catch (SpecialValueNoValueException e) {
+                return new FullyPropertySerializingNoValueSnak(propertyId);
+            } catch (SpecialValueSomeValueException e) {
+                return new FullyPropertySerializingSomeValueSnak(propertyId);
+            }
+        } catch (SpecialValueNoValueException | SpecialValueSomeValueException e) {
+            throw new SkipSchemaExpressionException(); // this should never occur
+        }
     }
 
     @JsonProperty("prop")

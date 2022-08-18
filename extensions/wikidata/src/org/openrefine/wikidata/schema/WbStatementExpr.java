@@ -35,6 +35,8 @@ import org.jsoup.helper.Validate;
 import org.openrefine.wikidata.qa.QAWarning;
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.openrefine.wikidata.schema.strategies.PropertyOnlyStatementMerger;
 import org.openrefine.wikidata.schema.strategies.StatementEditingMode;
 import org.openrefine.wikidata.schema.strategies.StatementMerger;
@@ -115,8 +117,14 @@ public class WbStatementExpr {
             throws SkipSchemaExpressionException, QAWarningException {
         Snak mainSnak = null;
         if (mainSnakValueExpr != null) {
-            Value mainSnakValue = mainSnakValueExpr.evaluate(ctxt);
-        	mainSnak = Datamodel.makeValueSnak(propertyId, mainSnakValue);
+            try {
+                Value mainSnakValue = mainSnakValueExpr.evaluate(ctxt);
+                mainSnak = Datamodel.makeValueSnak(propertyId, mainSnakValue);
+            } catch (SpecialValueNoValueException e) {
+                mainSnak = Datamodel.makeNoValueSnak(propertyId);
+            } catch (SpecialValueSomeValueException e) {
+                mainSnak = Datamodel.makeSomeValueSnak(propertyId);
+            }
         } else {
         	// hack to make sure we have a non-null snak
         	mainSnak = Datamodel.makeNoValueSnak(propertyId);

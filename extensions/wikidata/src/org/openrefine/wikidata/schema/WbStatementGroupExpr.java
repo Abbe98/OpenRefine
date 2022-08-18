@@ -30,6 +30,8 @@ import java.util.List;
 import org.jsoup.helper.Validate;
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.openrefine.wikidata.updates.StatementGroupEdit;
 import org.openrefine.wikidata.updates.StatementEdit;
 import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
@@ -57,19 +59,25 @@ public class WbStatementGroupExpr {
 
     public StatementGroupEdit evaluate(ExpressionContext ctxt, EntityIdValue subject)
             throws SkipSchemaExpressionException, QAWarningException {
-        PropertyIdValue propertyId = propertyExpr.evaluate(ctxt);
-        List<StatementEdit> statements = new ArrayList<>(statementExprs.size());
-        for (WbStatementExpr expr : statementExprs) {
-            try {
-                statements.add(expr.evaluate(ctxt, subject, propertyId));
-            } catch (SkipSchemaExpressionException e) {
-                continue;
+        
+        PropertyIdValue propertyId;
+        try {
+            propertyId = propertyExpr.evaluate(ctxt);
+            List<StatementEdit> statements = new ArrayList<>(statementExprs.size());
+            for (WbStatementExpr expr : statementExprs) {
+                try {
+                    statements.add(expr.evaluate(ctxt, subject, propertyId));
+                } catch (SkipSchemaExpressionException e) {
+                    continue;
+                }
             }
-        }
-        if (!statements.isEmpty()) {
-            return new StatementGroupEdit(statements);
-        } else {
-            throw new SkipSchemaExpressionException();
+            if (!statements.isEmpty()) {
+                return new StatementGroupEdit(statements);
+            } else {
+                throw new SkipSchemaExpressionException();
+            }
+        } catch (SpecialValueNoValueException | SpecialValueSomeValueException e) {
+            throw new SkipSchemaExpressionException(); // this should never happen
         }
     }
 

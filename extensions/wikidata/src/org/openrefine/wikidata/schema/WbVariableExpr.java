@@ -25,6 +25,8 @@ package org.openrefine.wikidata.schema;
 
 import org.openrefine.wikidata.schema.exceptions.QAWarningException;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -75,12 +77,20 @@ public abstract class WbVariableExpr<T> implements WbExpression<T> {
     /**
      * Evaluates the expression in a given context, returning
      * @throws QAWarningException 
+     * @throws SpecialValueNoValueException
+     * @throws SpecialValueSomeValueException
      */
     @Override
     public T evaluate(ExpressionContext ctxt)
-            throws SkipSchemaExpressionException, QAWarningException {
+            throws SkipSchemaExpressionException, QAWarningException, SpecialValueNoValueException, SpecialValueSomeValueException {
         Cell cell = ctxt.getCellByName(columnName);
         if (cell != null) {
+            if (cell.toString() == "#NOVALUE#") {
+                throw new SpecialValueNoValueException();
+            } else if (cell.toString() == "#SOMEVALUE#") {
+                throw new SpecialValueSomeValueException();
+            }
+
             return fromCell(cell, ctxt);
         }
         throw new SkipSchemaExpressionException();
