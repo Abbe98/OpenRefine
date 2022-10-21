@@ -27,6 +27,8 @@ import java.text.ParseException;
 
 import org.openrefine.wikidata.qa.QAWarning;
 import org.openrefine.wikidata.schema.exceptions.SkipSchemaExpressionException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueNoValueException;
+import org.openrefine.wikidata.schema.exceptions.SpecialValueSomeValueException;
 import org.wikidata.wdtk.datamodel.interfaces.TimeValue;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -56,13 +58,18 @@ public class WbDateVariable extends WbVariableExpr<TimeValue> {
         if (cell == null || cell.value == null) {
             throw new SkipSchemaExpressionException();
         }
+        String value = cell.value.toString();
         try {
             // parsed dates are accepted by converting them to strings
-            return WbDateConstant.parse(cell.value.toString());
+            return WbDateConstant.parse(value);
         } catch (ParseException e) {
-            if(!cell.value.toString().isEmpty()) {
+            if (value.equals("#NOVALUE#")) {
+                throw new SpecialValueNoValueException();
+            } else if (value.equals("#SOMEVALUE#")) {
+                throw new SpecialValueSomeValueException();
+            } else if (!value.isEmpty()) {
                 QAWarning issue = new QAWarning("ignored-date", null, QAWarning.Severity.WARNING, 1);
-                issue.setProperty("example_value", cell.value.toString());
+                issue.setProperty("example_value", value);
                 ctxt.addWarning(issue);
             }
             throw new SkipSchemaExpressionException();
